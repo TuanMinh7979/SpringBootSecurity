@@ -16,28 +16,38 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class SecurityConf extends WebSecurityConfigurerAdapter {
     @Autowired
     private AccountService accountService;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable();
-        http.authorizeRequests().antMatchers("/superadmin/**").access("hasRole('ROLE_SUPER_ADMIN')")
-                .antMatchers("/admin/**").access("hasRole('ROLE_SUPER_ADMIN') or hasRole('ROLE_ADMIN')").
-                antMatchers("/employee/**").access("hasRole('ROLE_SUPER_ADMIN') or hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')").
-                and().formLogin().loginPage("/account/login")
+        http.authorizeRequests()
+                .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_SUPER_ADMIN')")
+                .antMatchers("/superadmin/**").access("hasRole('ROLE_SUPER_ADMIN')")
+
+                .antMatchers("/employee/**").access("hasRole('ROLE_SUPER_ADMIN') or hasRole('ROLE_ADMIN') or hasRole('ROLE_EMPLOYEE')")
+
+                .and()
+                .formLogin().loginPage("/account/login")
                 .loginProcessingUrl("/account/process-login")
                 .defaultSuccessUrl("/account/welcome")
                 .failureUrl("/account/login?err=")
                 .usernameParameter("username")
                 .passwordParameter("password")
-                .and().logout().logoutUrl("/account/logout")
-                .logoutSuccessUrl("/account/login?logout");
+                .and()
+                .logout().logoutUrl("/account/logout")
+                .logoutSuccessUrl("/account/login?logout").
+                and()
+                .exceptionHandling().accessDeniedPage("/account/accessDeined");
 
     }
+
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder builder ) throws Exception{
-     builder.userDetailsService(accountService);
+    public void configureGlobal(AuthenticationManagerBuilder builder) throws Exception {
+        builder.userDetailsService(accountService);
     }
+
     @Bean
-    public BCryptPasswordEncoder encoder(){
+    public BCryptPasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
     }
 }
